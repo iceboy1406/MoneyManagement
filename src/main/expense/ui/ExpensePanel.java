@@ -45,15 +45,68 @@ public class ExpensePanel extends JPanel {
     }
 
     private void deleteSelectedRowButtonActionPerformed(ActionEvent evt) {
+        try {
+            if (expenseTable.getSelectedRows().length == 0) {
+                throw new ValidationException("Please select at least one row");
+            } else if (expenseTable.getSelectedRows().length > 1) {
+                int ans = JOptionPane.showConfirmDialog(this.mainFrame, "Are you sure want to delete these rows?",
+                        "Delete Confirmation", JOptionPane.YES_NO_OPTION
+                );
+
+                if (ans == JOptionPane.YES_OPTION) {
+                    int[] selectedRows = expenseTable.getSelectedRows();
+                    int[] ids = new int[selectedRows.length];
+
+                    for (int i = 0; i < selectedRows.length; i++) {
+                        ids[i] = (int) expenseTableModel.getValueAt(selectedRows[i], 0);
+                    }
+
+                    expenseService.deleteMany(ids);
+
+                    JOptionPane.showMessageDialog(this.mainFrame, "Successfully deleted selected rows");
+                    this.refreshData();
+                }
+            } else {
+                int ans = JOptionPane.showConfirmDialog(this.mainFrame, "Are you sure want to delete this row?",
+                        "Delete Confirmation", JOptionPane.YES_NO_OPTION
+                );
+
+                if (ans == JOptionPane.YES_OPTION) {
+                    int selectedID = (int) expenseTableModel.getValueAt(expenseTable.getSelectedRow(), 0);
+                    expenseService.delete(selectedID);
+                    JOptionPane.showMessageDialog(this.mainFrame, "Successfully deleted selected row");
+                    expenseTableModel.removeRow(expenseTable.getSelectedRow());
+                }
+            }
+        } catch (ValidationException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Something went wrong");
+        }
     }
 
     private void editSelectedRowButtonActionPerformed(ActionEvent evt) {
+        if (expenseTable.getSelectedRows().length == 0) {
+            JOptionPane.showMessageDialog(this.mainFrame, "Please select a row first");
+        } else if (expenseTable.getSelectedRows().length > 1) {
+            JOptionPane.showMessageDialog(this.mainFrame, "You can only edit one table each time");
+        } else {
+            int id = (int) expenseTableModel.getValueAt(expenseTable.getSelectedRow(), 0);
+            EditExpenseDialog editExpenseDialog = new EditExpenseDialog(this.mainFrame, true, this, id);
+            editExpenseDialog.setLocationRelativeTo(this.mainFrame);
+            editExpenseDialog.setVisible(true);
+        }
     }
 
     private void addNewExpenseButtonActionPerformed(ActionEvent evt) {
         AddNewExpenseDialog addNewExpenseDialog = new AddNewExpenseDialog(this.mainFrame, true, this);
         addNewExpenseDialog.setLocationRelativeTo(this.mainFrame);
         addNewExpenseDialog.setVisible(true);
+    }
+
+    public void refreshData() {
+        this.initData();
     }
 
     private void initComponents() {

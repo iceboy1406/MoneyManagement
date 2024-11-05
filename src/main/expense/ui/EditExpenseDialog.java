@@ -19,13 +19,15 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
-public class AddNewExpenseDialog extends JDialog {
-    private ExpenseService expenseService;
-    private ExpenseCategoryService expenseCategoryService;
-    private ExpensePanel parentPanel;
+public class EditExpenseDialog extends JDialog {
+    private final ExpenseService expenseService;
+    private final ExpenseCategoryService expenseCategoryService;
+    private final ExpensePanel parentPanel;
+    private final int expenseId;
 
-    public AddNewExpenseDialog(java.awt.Frame parent, boolean modal, ExpensePanel parentPanel) {
+    public EditExpenseDialog(java.awt.Frame parent, boolean modal, ExpensePanel parentPanel, int expenseId) {
         super(parent, modal);
+        this.expenseId = expenseId;
         this.parentPanel = parentPanel;
         initComponents();
 
@@ -33,6 +35,7 @@ public class AddNewExpenseDialog extends JDialog {
         expenseService = new ExpenseService(new ExpenseRepository(Database.getConnection()));
         initDatePicker();
         initCategoryList();
+        initCurrentData();
     }
 
     private void initCategoryList() {
@@ -43,6 +46,21 @@ public class AddNewExpenseDialog extends JDialog {
                 comboBoxModel.addElement(expenseCategory);
             }
             categoryComboBox.setModel(comboBoxModel);
+        } catch (ValidationException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Something went wrong");
+        }
+    }
+
+    private void initCurrentData() {
+        try {
+            Expense currentExpense = expenseService.findById(this.expenseId);
+            amountField.setText(String.valueOf(currentExpense.amount));
+            descriptionField.setText(currentExpense.description);
+            dateField.setText(DateConverter.toFormattedDate(currentExpense.date));
+            categoryComboBox.getModel().setSelectedItem(currentExpense.category);
         } catch (ValidationException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         } catch (SQLException e) {
@@ -66,8 +84,8 @@ public class AddNewExpenseDialog extends JDialog {
                 String description = descriptionField.getText();
                 Preferences pref = Preferences.userRoot();
 
-                expenseService.add(new Expense(amount, description, date, pref.get("username", ""), category));
-                JOptionPane.showMessageDialog(this, "Successfully added new expense");
+                expenseService.update(new Expense(expenseId, amount, description, date, pref.get("username", ""), category));
+                JOptionPane.showMessageDialog(this, "Successfully update the expense");
                 this.parentPanel.refreshData();
                 this.dispose();
             }

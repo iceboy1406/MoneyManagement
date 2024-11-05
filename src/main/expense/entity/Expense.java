@@ -11,4 +11,9 @@ public class Expense extends Transaction {
         super(id, amount, description, date, username);
         this.category = category;
     }
+
+    public Expense(double amount, String description, Date date, String username, ExpenseCategory category) {
+        super(-1, amount, description, date, username);
+        this.category = category;
+    }
 }
