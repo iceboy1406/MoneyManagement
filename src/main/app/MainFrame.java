@@ -53,6 +53,21 @@ public class MainFrame extends javax.swing.JFrame {
         mainTabbedPane.addTab("Expense", expensePanel);
         mainTabbedPane.addTab("Income", incomePanel);
 
+        // Refresh data when tab is changed
+        mainTabbedPane.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                if (mainTabbedPane.getSelectedComponent() == dashboardPanel) {
+                    ((DashboardPanel) dashboardPanel).initTotalBalance();
+                    ((DashboardPanel) dashboardPanel).initTotalExpense();
+                    ((DashboardPanel) dashboardPanel).initTotalIncome();
+                } else if (mainTabbedPane.getSelectedComponent() == expensePanel) {
+                    ((ExpensePanel) expensePanel).refreshData();
+                } else if (mainTabbedPane.getSelectedComponent() == incomePanel) {
+                    ((IncomePanel) incomePanel).refreshData();
+                }
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
